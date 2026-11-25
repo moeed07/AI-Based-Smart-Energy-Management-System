@@ -75,3 +75,105 @@ void Usageanalytics::inOrderBST(Bstnode* node) const
     cout << "Zone ID: " << node->data.zoneID << " | Name: " << node->data.zoneName << " | Load: " << node->data.currentLoad << " kW" << endl; // prints Gridzone fields from Gridmodel.h
     inOrderBST(node->right);
 }
+int Usageanalytics::getHeight(Avlnode* node) const
+{
+    if (node == nullptr)
+    {
+        return 0;
+    }
+    return node->height;
+}
+int Usageanalytics::maxVal(int a, int b) const
+{
+    if (a > b)
+    {
+        return a;
+    }
+    return b;
+}
+int Usageanalytics::getBalance(Avlnode* node) const
+{
+    if (node == nullptr)
+    {
+        return 0;
+    }
+    return getHeight(node->left) - getHeight(node->right);
+}
+Avlnode* Usageanalytics::rightRotate(Avlnode* y)
+{
+    Avlnode* x = y->left;
+    Avlnode* T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    y->height = maxVal(getHeight(y->left), getHeight(y->right)) + 1;
+    x->height = maxVal(getHeight(x->left), getHeight(x->right)) + 1;
+    return x;
+}
+Avlnode* Usageanalytics::leftRotate(Avlnode* x)
+{
+    Avlnode* y = x->right;
+    Avlnode* T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    x->height = maxVal(getHeight(x->left), getHeight(x->right)) + 1;
+    y->height = maxVal(getHeight(y->left), getHeight(y->right)) + 1;
+    return y;
+}
+Avlnode* Usageanalytics::insertAVL(Avlnode* node, const Gridzone& zone) // receives Gridzone from Gridmodel.h
+{
+    if (node == nullptr)
+    {
+        return new Avlnode(zone);
+    }
+    if (zone.currentLoad < node->data.currentLoad) // compares currentLoad from Gridmodel.h
+    {
+        node->left = insertAVL(node->left, zone);
+    }
+    else if (zone.currentLoad > node->data.currentLoad) // compares currentLoad from Gridmodel.h
+    {
+        node->right = insertAVL(node->right, zone);
+    }
+    else
+    {
+        if (zone.zoneID < node->data.zoneID) // tie-breaks using zoneID from Gridmodel.h
+        {
+            node->left = insertAVL(node->left, zone);
+        }
+        else if (zone.zoneID > node->data.zoneID) // tie-breaks using zoneID from Gridmodel.h
+        {
+            node->right = insertAVL(node->right, zone);
+        }
+        else
+        {
+            node->data = zone;
+            return node;
+        }
+    }
+
+    node->height = 1 + maxVal(getHeight(node->left), getHeight(node->right));
+    int balance = getBalance(node);
+
+    if (balance > 1 && zone.currentLoad < node->left->data.currentLoad) // checks currentLoad from Gridmodel.h
+    {
+        return rightRotate(node);
+    }
+    if (balance < -1 && zone.currentLoad > node->right->data.currentLoad) // checks currentLoad from Gridmodel.h
+    {
+        return leftRotate(node);
+    }
+    if (balance > 1 && zone.currentLoad > node->left->data.currentLoad) // checks currentLoad from Gridmodel.h
+    {
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
+    }
+    if (balance < -1 && zone.currentLoad < node->right->data.currentLoad) // checks currentLoad from Gridmodel.h
+    {
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
+    }
+    return node;
+}
