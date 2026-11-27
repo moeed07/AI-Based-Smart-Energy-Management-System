@@ -177,3 +177,74 @@ Avlnode* Usageanalytics::insertAVL(Avlnode* node, const Gridzone& zone) // recei
     }
     return node;
 }
+void Usageanalytics::rangeQueryAVL(Avlnode* node, double minLoad, double maxLoad) const
+{
+    if (node == nullptr)
+    {
+        return;
+    }
+    if (minLoad < node->data.currentLoad) // checks currentLoad from Gridmodel.h
+    {
+        rangeQueryAVL(node->left, minLoad, maxLoad);
+    }
+    if (node->data.currentLoad >= minLoad && node->data.currentLoad <= maxLoad) // checks currentLoad from Gridmodel.h
+    {
+        cout << "Zone ID: " << node->data.zoneID << " | Name: " << node->data.zoneName << " | Load: " << node->data.currentLoad << " / " << node->data.maxCapacity << " kW" << endl; // prints Gridzone fields from Gridmodel.h
+    }
+    if (maxLoad > node->data.currentLoad) // checks currentLoad from Gridmodel.h
+    {
+        rangeQueryAVL(node->right, minLoad, maxLoad);
+    }
+}
+void Usageanalytics::inOrderAVL(Avlnode* node) const
+{
+    if (node == nullptr)
+    {
+        return;
+    }
+    inOrderAVL(node->left);
+    cout << "Load: " << node->data.currentLoad << " kW | Zone: " << node->data.zoneName << " (ID: " << node->data.zoneID << ")" << endl; // prints Gridzone fields from Gridmodel.h
+    inOrderAVL(node->right);
+}
+void Usageanalytics::archiveZoneBST(const Gridzone& zone) // receives Gridzone from Gridmodel.h
+{
+    bstRoot = insertBST(bstRoot, zone);
+}
+Gridzone* Usageanalytics::findArchivedZone(int zoneID) const // returns Gridzone pointer from Gridmodel.h
+{
+    return searchBST(bstRoot, zoneID);
+}
+void Usageanalytics::displayBSTArchive() const
+{
+    cout << "\nBST Zone Archive (Sorted by ID)" << endl;
+    if (bstRoot == nullptr)
+    {
+        cout << "Archive is empty." << endl;
+        return;
+    }
+    inOrderBST(bstRoot);
+}
+void Usageanalytics::indexZoneAVL(const Gridzone& zone) // receives Gridzone from Gridmodel.h
+{
+    avlRoot = insertAVL(avlRoot, zone);
+}
+void Usageanalytics::searchUsageRange(double minLoad, double maxLoad) const
+{
+    cout << "\nZones Consuming Between " << minLoad << " kW and " << maxLoad << " kW" << endl;
+    if (avlRoot == nullptr)
+    {
+        cout << "No zones indexed yet." << endl;
+        return;
+    }
+    rangeQueryAVL(avlRoot, minLoad, maxLoad);
+}
+void Usageanalytics::displaySortedUsageAVL() const
+{
+    cout << "\nAVL Usage Ranking (Lowest to Highest kW)" << endl;
+    if (avlRoot == nullptr)
+    {
+        cout << "No zones indexed yet." << endl;
+        return;
+    }
+    inOrderAVL(avlRoot);
+}
